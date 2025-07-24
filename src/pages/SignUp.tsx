@@ -6,13 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Lock, Zap } from 'lucide-react';
+import { Smartphone, Lock, User, Zap } from 'lucide-react';
 
-const Auth = () => {
+const SignUp = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, user } = useAuth();
+  const { signUp, user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -22,23 +23,24 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(phone, password);
+    const { error } = await signUp(phone, password, fullName);
 
     if (error) {
       toast({
-        title: "Sign in failed",
+        title: "Sign up failed",
         description: error.message,
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Welcome!",
-        description: "You have successfully signed in.",
+        title: "Account created!",
+        description: "Welcome to EcoRide Support. You can now sign in.",
       });
+      navigate('/auth');
     }
 
     setIsLoading(false);
@@ -52,32 +54,47 @@ const Auth = () => {
             <Zap className="h-8 w-8 text-primary-foreground" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
-            EcoRide Support
+            Join EcoRide
           </h1>
           <p className="text-muted-foreground mt-2">
-            Get help with your electric scooter
+            Create your support account
           </p>
         </div>
 
         <Card className="mobile-card">
           <CardHeader className="space-y-1 text-center pb-6">
             <CardTitle className="text-xl font-semibold">
-              Welcome Back
+              Create Account
             </CardTitle>
             <CardDescription>
-              Sign in to access customer support
+              Get started with EcoRide customer support
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSignIn} className="space-y-5">
+            <form onSubmit={handleSignUp} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium">Email/Phone</Label>
+                <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="mobile-input pl-12"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium">Email</Label>
                 <div className="relative">
                   <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
-                    type="text"
-                    placeholder="Enter your email or phone"
+                    type="email"
+                    placeholder="Enter your email address"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="mobile-input pl-12"
@@ -92,11 +109,12 @@ const Auth = () => {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="Enter your password"
+                    placeholder="Create a password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="mobile-input pl-12"
                     required
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -105,26 +123,21 @@ const Auth = () => {
                 className="mobile-button w-full gradient-primary border-0 shadow-[var(--shadow-mobile)]" 
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Creating account..." : "Create Account"}
               </Button>
             </form>
             
-            <div className="mt-6 p-4 bg-muted/30 rounded-xl space-y-3">
-              <p className="text-xs text-muted-foreground text-center">
-                Demo: Use any email with password "123456" or create a new account
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-primary hover:text-primary-glow"
+                  onClick={() => navigate('/auth')}
+                >
+                  Sign in
+                </Button>
               </p>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{' '}
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto text-primary hover:text-primary-glow"
-                    onClick={() => navigate('/signup')}
-                  >
-                    Sign up
-                  </Button>
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -133,4 +146,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default SignUp;

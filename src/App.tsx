@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -34,6 +35,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/" element={
               <ProtectedRoute>
                 <Dashboard />
