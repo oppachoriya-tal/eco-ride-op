@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Lock } from 'lucide-react';
+import { Smartphone, Lock, Zap } from 'lucide-react';
 
 const Auth = () => {
   const [phone, setPhone] = useState('');
@@ -45,54 +45,78 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            EScooter Support
-          </CardTitle>
-          <CardDescription className="text-center">
-            Sign in to access customer support
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="phone">Email/Phone</Label>
-              <div className="relative">
-                <Smartphone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="phone"
-                  type="text"
-                  placeholder="Enter your email or phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted/30 p-4">
+      <div className="mobile-container">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 mb-4 gradient-primary rounded-2xl shadow-[var(--shadow-mobile)]">
+            <Zap className="h-8 w-8 text-primary-foreground" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">
+            EcoRide Support
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Get help with your electric scooter
+          </p>
+        </div>
+
+        <Card className="mobile-card">
+          <CardHeader className="space-y-1 text-center pb-6">
+            <CardTitle className="text-xl font-semibold">
+              Welcome Back
+            </CardTitle>
+            <CardDescription>
+              Sign in to access customer support
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSignIn} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-sm font-medium">Email/Phone</Label>
+                <div className="relative">
+                  <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="phone"
+                    type="text"
+                    placeholder="Enter your email or phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="mobile-input pl-12"
+                    required
+                  />
+                </div>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10"
-                  required
-                />
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="mobile-input pl-12"
+                    required
+                  />
+                </div>
               </div>
+              <Button 
+                type="submit" 
+                className="mobile-button w-full gradient-primary border-0 shadow-[var(--shadow-mobile)]" 
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+            
+            <div className="mt-6 p-4 bg-muted/30 rounded-xl">
+              <p className="text-xs text-muted-foreground text-center">
+                Demo: Use any email/phone with password "123456"
+              </p>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign In"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
