@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@/components/AuthProvider';
+import { useUserProfile } from '@/components/useUserProfile';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +19,8 @@ import {
   Paperclip,
   Zap,
   ThumbsDown,
-  Plus
+  Plus,
+  Settings
 } from 'lucide-react';
 
 interface Message {
@@ -31,6 +34,7 @@ interface Message {
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useUserProfile();
   const { toast } = useToast();
   const [question, setQuestion] = useState('');
   const [messages, setMessages] = useState<Message[]>([
@@ -168,9 +172,23 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={signOut} size="sm" className="rounded-xl">
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <div className="flex gap-2">
+              {isAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  asChild
+                  className="rounded-xl"
+                >
+                  <Link to="/admin">
+                    <Settings className="h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
+              <Button variant="outline" onClick={signOut} size="sm" className="rounded-xl">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
