@@ -8,20 +8,30 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MessageCircle, 
   Package, 
   LogOut, 
-  FileText, 
   HelpCircle, 
   Send, 
   Paperclip,
   Zap,
   ThumbsDown,
-  Plus,
-  Settings
+  Settings,
+  Calendar,
+  Battery,
+  Wrench,
+  GitCompare,
+  Star,
+  MapPin,
+  Clock
 } from 'lucide-react';
+import BookingModal from '@/components/BookingModal';
+import ModelComparison from '@/components/ModelComparison';
+import ServiceTracker from '@/components/ServiceTracker';
+import BatteryService from '@/components/BatteryService';
 
 interface Message {
   id: number;
@@ -193,152 +203,280 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <div className="mobile-container py-6 space-y-6">
-        {/* Quick Questions - Mobile First */}
-        <Card className="mobile-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-lg">
-              <HelpCircle className="h-5 w-5 mr-2 text-primary" />
-              Quick Help
-            </CardTitle>
-            <CardDescription className="text-sm">
-              Tap a question for instant help
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-3">
-              {commonQuestions.slice(0, 4).map((q) => (
-                <Button
-                  key={q.id}
-                  variant="outline"
-                  className="justify-start h-auto p-4 text-left rounded-xl border-border/50 hover:border-primary/50"
-                  onClick={() => handleQuestionClick(q)}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{q.question}</p>
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        {q.category}
-                      </Badge>
-                    </div>
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="mobile-container py-6">
+        <Tabs defaultValue="support" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 rounded-xl">
+            <TabsTrigger value="support" className="rounded-lg">
+              <MessageCircle className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Support</span>
+            </TabsTrigger>
+            <TabsTrigger value="booking" className="rounded-lg">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Booking</span>
+            </TabsTrigger>
+            <TabsTrigger value="service" className="rounded-lg">
+              <Wrench className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Service</span>
+            </TabsTrigger>
+            <TabsTrigger value="battery" className="rounded-lg">
+              <Battery className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Battery</span>
+            </TabsTrigger>
+            <TabsTrigger value="compare" className="rounded-lg">
+              <GitCompare className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">Models</span>
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Chat Section */}
-        <Card className="mobile-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-lg">
-              <MessageCircle className="h-5 w-5 mr-2 text-primary" />
-              Chat Support
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Messages */}
-            <ScrollArea className="h-80 rounded-xl bg-muted/20 p-4">
-              <div className="space-y-4">
-                {messages.map((message) => (
-                  <div key={message.id}>
-                    <div
-                      className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+          <TabsContent value="support" className="space-y-6">
+            {/* Quick Questions - Mobile First */}
+            <Card className="mobile-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <HelpCircle className="h-5 w-5 mr-2 text-primary" />
+                  Quick Help
+                </CardTitle>
+                <CardDescription className="text-sm">
+                  Tap a question for instant help
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-3">
+                  {commonQuestions.slice(0, 4).map((q) => (
+                    <Button
+                      key={q.id}
+                      variant="outline"
+                      className="justify-start h-auto p-4 text-left rounded-xl border-border/50 hover:border-primary/50"
+                      onClick={() => handleQuestionClick(q)}
                     >
-                      <div
-                        className={`max-w-[85%] rounded-2xl px-4 py-3 ${
-                          message.type === 'user'
-                            ? 'gradient-primary text-primary-foreground shadow-[var(--shadow-mobile)]'
-                            : 'bg-card border border-border/50 shadow-[var(--shadow-card)]'
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed">{message.text}</p>
-                        <p className={`text-xs mt-2 opacity-70`}>
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Feedback for system messages */}
-                    {message.type === 'system' && message.showFeedback && (
-                      <div className="flex justify-start mt-2">
-                        <div className="flex items-center space-x-2">
-                          <p className="text-xs text-muted-foreground">Was this helpful?</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 px-3 text-xs"
-                            onClick={() => handleNotSatisfied(message.id)}
-                          >
-                            <ThumbsDown className="h-3 w-3 mr-1" />
-                            Not satisfied
-                          </Button>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-2 h-2 rounded-full bg-primary"></div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{q.question}</p>
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            {q.category}
+                          </Badge>
                         </div>
                       </div>
-                    )}
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Chat Section */}
+            <Card className="mobile-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <MessageCircle className="h-5 w-5 mr-2 text-primary" />
+                  Chat Support
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Messages */}
+                <ScrollArea className="h-80 rounded-xl bg-muted/20 p-4">
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div key={message.id}>
+                        <div
+                          className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
+                            className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                              message.type === 'user'
+                                ? 'gradient-primary text-primary-foreground shadow-[var(--shadow-mobile)]'
+                                : 'bg-card border border-border/50 shadow-[var(--shadow-card)]'
+                            }`}
+                          >
+                            <p className="text-sm leading-relaxed">{message.text}</p>
+                            <p className={`text-xs mt-2 opacity-70`}>
+                              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {/* Feedback for system messages */}
+                        {message.type === 'system' && message.showFeedback && (
+                          <div className="flex justify-start mt-2">
+                            <div className="flex items-center space-x-2">
+                              <p className="text-xs text-muted-foreground">Was this helpful?</p>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-3 text-xs"
+                                onClick={() => handleNotSatisfied(message.id)}
+                              >
+                                <ThumbsDown className="h-3 w-3 mr-1" />
+                                Not satisfied
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+
+                {/* Input */}
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="Ask your question here..."
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    className="min-h-16 rounded-xl border-border/50 resize-none"
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleSendMessage} 
+                      className="flex-1 mobile-button gradient-primary border-0 shadow-[var(--shadow-mobile)]"
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Send
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="mobile-button border-border/50"
+                      onClick={handleFileUpload}
+                    >
+                      <Paperclip className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* My Orders */}
+            <Card className="mobile-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <Package className="h-5 w-5 mr-2 text-primary" />
+                  My Orders
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {mockOrders.map((order) => (
+                  <div key={order.id} className="p-4 border border-border/50 rounded-xl bg-card/50">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-medium">{order.model}</p>
+                        <p className="text-sm text-muted-foreground">{order.orderNumber}</p>
+                      </div>
+                      <Badge variant={order.statusColor} className="rounded-lg">
+                        {order.status}
+                      </Badge>
+                    </div>
+                    <Separator className="my-2" />
+                    <p className="text-xs text-muted-foreground">
+                      Expected: {order.expectedDate}
+                    </p>
                   </div>
                 ))}
-              </div>
-            </ScrollArea>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Input */}
-            <div className="space-y-3">
-              <Textarea
-                placeholder="Ask your question here..."
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                className="min-h-16 rounded-xl border-border/50 resize-none"
-              />
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleSendMessage} 
-                  className="flex-1 mobile-button gradient-primary border-0 shadow-[var(--shadow-mobile)]"
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="mobile-button border-border/50"
-                  onClick={handleFileUpload}
-                >
-                  <Paperclip className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          <TabsContent value="booking" className="space-y-6">
+            {/* Quick Booking Options */}
+            <Card className="mobile-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg">
+                  <Calendar className="h-5 w-5 mr-2 text-primary" />
+                  Book Services
+                </CardTitle>
+                <CardDescription>
+                  Schedule test rides, consultations, and services
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <BookingModal type="test-ride">
+                    <Button variant="outline" size="lg" className="h-auto p-4 justify-start rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Zap className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium">Test Ride</p>
+                          <p className="text-sm text-muted-foreground">Try before you buy</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </BookingModal>
 
-        {/* My Orders */}
-        <Card className="mobile-card">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-lg">
-              <Package className="h-5 w-5 mr-2 text-primary" />
-              My Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {mockOrders.map((order) => (
-              <div key={order.id} className="p-4 border border-border/50 rounded-xl bg-card/50">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="font-medium">{order.model}</p>
-                    <p className="text-sm text-muted-foreground">{order.orderNumber}</p>
-                  </div>
-                  <Badge variant={order.statusColor} className="rounded-lg">
-                    {order.status}
-                  </Badge>
+                  <BookingModal type="purchase">
+                    <Button variant="outline" size="lg" className="h-auto p-4 justify-start rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-2 rounded-lg bg-green-100">
+                          <Package className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium">Purchase Consultation</p>
+                          <p className="text-sm text-muted-foreground">Get expert advice</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </BookingModal>
+
+                  <BookingModal type="service">
+                    <Button variant="outline" size="lg" className="h-auto p-4 justify-start rounded-xl">
+                      <div className="flex items-center space-x-4">
+                        <div className="p-2 rounded-lg bg-blue-100">
+                          <Wrench className="h-6 w-6 text-blue-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium">Service Appointment</p>
+                          <p className="text-sm text-muted-foreground">Maintenance & repairs</p>
+                        </div>
+                      </div>
+                    </Button>
+                  </BookingModal>
                 </div>
-                <Separator className="my-2" />
-                <p className="text-xs text-muted-foreground">
-                  Expected: {order.expectedDate}
-                </p>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Appointments */}
+            <Card className="mobile-card">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-xl bg-muted/20 border border-border/50">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium">Test Ride - EcoRide Pro</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                          <Calendar className="h-4 w-4" />
+                          <span>Jan 28, 2024</span>
+                          <Clock className="h-4 w-4 ml-2" />
+                          <span>2:00 PM</span>
+                        </div>
+                      </div>
+                      <Badge variant="secondary">Confirmed</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>Downtown Showroom</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="service" className="space-y-6">
+            <ServiceTracker />
+          </TabsContent>
+
+          <TabsContent value="battery" className="space-y-6">
+            <BatteryService />
+          </TabsContent>
+
+          <TabsContent value="compare" className="space-y-6">
+            <ModelComparison />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Hidden file input */}
