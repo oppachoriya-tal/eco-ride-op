@@ -111,7 +111,7 @@ const Auth = () => {
             
             <div className="mt-6 p-4 bg-muted/30 rounded-xl space-y-3">
               <p className="text-xs text-muted-foreground text-center">
-                Demo: Use any email with password "123456" or create a new account
+                Demo: admin@scooter.com (123456) | admin@talentica.com (talentica@2025)
               </p>
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">

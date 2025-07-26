@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUserProfile } from '@/components/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Ticket, BarChart3, Settings, Search, Filter } from 'lucide-react';
+import { Users, Ticket, BarChart3, Settings, Search, Filter, Plus, Calendar, Activity, TrendingUp, MessageSquare, UserPlus, Shield, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SupportTicket {
@@ -196,8 +197,18 @@ const AdminDashboard = () => {
   const stats = {
     totalTickets: tickets.length,
     openTickets: tickets.filter(t => t.status === 'open').length,
+    inProgressTickets: tickets.filter(t => t.status === 'in_progress').length,
+    resolvedTickets: tickets.filter(t => t.status === 'resolved').length,
     totalUsers: users.length,
-    adminUsers: users.filter(u => u.role === 'admin').length
+    adminUsers: users.filter(u => u.role === 'admin').length,
+    supportUsers: users.filter(u => u.role === 'support').length,
+    customerUsers: users.filter(u => u.role === 'customer').length,
+    urgentTickets: tickets.filter(t => t.priority === 'urgent').length,
+    todayTickets: tickets.filter(t => {
+      const today = new Date();
+      const ticketDate = new Date(t.created_at);
+      return ticketDate.toDateString() === today.toDateString();
+    }).length
   };
 
   return (
@@ -219,19 +230,54 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalTickets}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.todayTickets} created today
+              </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Open Tickets</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              <AlertTriangle className="h-4 w-4 text-destructive" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.openTickets}</div>
+              <div className="text-2xl font-bold text-destructive">{stats.openTickets}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.urgentTickets} urgent
+              </p>
             </CardContent>
           </Card>
           
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">In Progress</CardTitle>
+              <Activity className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">{stats.inProgressTickets}</div>
+              <p className="text-xs text-muted-foreground">
+                Being processed
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Resolved</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.resolvedTickets}</div>
+              <p className="text-xs text-muted-foreground">
+                Success rate: {stats.totalTickets > 0 ? Math.round((stats.resolvedTickets / stats.totalTickets) * 100) : 0}%
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* User Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
@@ -239,24 +285,45 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Registered users
+              </p>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Admin Users</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Admin & Support</CardTitle>
+              <Shield className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.adminUsers}</div>
+              <div className="text-2xl font-bold">{stats.adminUsers + stats.supportUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.adminUsers} admins, {stats.supportUsers} support
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Customers</CardTitle>
+              <UserPlus className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.customerUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Regular customers
+              </p>
             </CardContent>
           </Card>
         </div>
 
         <Tabs defaultValue="tickets" className="space-y-4">
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="tickets" className="space-y-4">
@@ -376,6 +443,271 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ticket Status Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Open</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-destructive" 
+                            style={{ width: `${stats.totalTickets > 0 ? (stats.openTickets / stats.totalTickets) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.openTickets}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">In Progress</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary" 
+                            style={{ width: `${stats.totalTickets > 0 ? (stats.inProgressTickets / stats.totalTickets) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.inProgressTickets}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Resolved</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-600" 
+                            style={{ width: `${stats.totalTickets > 0 ? (stats.resolvedTickets / stats.totalTickets) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.resolvedTickets}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>User Role Distribution</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Customers</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-blue-500" 
+                            style={{ width: `${stats.totalUsers > 0 ? (stats.customerUsers / stats.totalUsers) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.customerUsers}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Support</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-yellow-500" 
+                            style={{ width: `${stats.totalUsers > 0 ? (stats.supportUsers / stats.totalUsers) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.supportUsers}</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Admins</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-purple-500" 
+                            style={{ width: `${stats.totalUsers > 0 ? (stats.adminUsers / stats.totalUsers) * 100 : 0}%` }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">{stats.adminUsers}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {tickets.slice(0, 5).map((ticket) => (
+                      <div key={ticket.id} className="flex items-center gap-3 text-sm">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <span className="font-medium">{ticket.customer?.full_name}</span>
+                          <span className="text-muted-foreground"> created ticket: </span>
+                          <span className="truncate">{ticket.title}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(ticket.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                    {tickets.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No recent activity</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Ticket
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Support User
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Generate Report
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Settings className="h-4 w-4 mr-2" />
+                      System Settings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>System Settings</CardTitle>
+                  <CardDescription>Configure application settings</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Auto-assign tickets</Label>
+                    <Select defaultValue="disabled">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                        <SelectItem value="round-robin">Round Robin</SelectItem>
+                        <SelectItem value="workload">By Workload</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Default Priority</Label>
+                    <Select defaultValue="medium">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="urgent">Urgent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button className="w-full">Save Settings</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Email Notifications</CardTitle>
+                  <CardDescription>Configure notification settings</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Notify admins on new tickets</Label>
+                    <Select defaultValue="enabled">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="enabled">Enabled</SelectItem>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Daily summary reports</Label>
+                    <Select defaultValue="enabled">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="enabled">Enabled</SelectItem>
+                        <SelectItem value="disabled">Disabled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button className="w-full">Update Notifications</Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Data Management</CardTitle>
+                  <CardDescription>Backup and maintenance tools</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full" variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Export Data
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <Activity className="h-4 w-4 mr-2" />
+                    System Health Check
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Generate Analytics Report
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Security</CardTitle>
+                  <CardDescription>Security and access controls</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Button className="w-full" variant="outline">
+                    <Shield className="h-4 w-4 mr-2" />
+                    View Access Logs
+                  </Button>
+                  <Button className="w-full" variant="outline">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Permissions
+                  </Button>
+                  <Button className="w-full" variant="destructive">
+                    <AlertTriangle className="h-4 w-4 mr-2" />
+                    Reset System
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
