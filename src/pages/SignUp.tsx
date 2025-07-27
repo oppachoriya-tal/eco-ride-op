@@ -6,12 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
-import { Smartphone, Lock, User, Zap } from 'lucide-react';
+import { Smartphone, Lock, User, Zap, Shield } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const SignUp = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState('customer');
   const [isLoading, setIsLoading] = useState(false);
   const { signUp, user } = useAuth();
   const { toast } = useToast();
@@ -27,7 +29,7 @@ const SignUp = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(phone, password, fullName);
+    const { error } = await signUp(phone, password, fullName, role);
 
     if (error) {
       toast({
@@ -100,6 +102,22 @@ const SignUp = () => {
                     className="mobile-input pl-12"
                     required
                   />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-sm font-medium">Account Type</Label>
+                <div className="relative">
+                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger className="mobile-input pl-12">
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="support">Support Agent</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div className="space-y-2">
