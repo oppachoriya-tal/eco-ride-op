@@ -71,13 +71,13 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleSignIn} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm font-medium">Email/Phone</Label>
+                <Label htmlFor="phone" className="text-sm font-medium">Email</Label>
                 <div className="relative">
                   <Smartphone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="phone"
-                    type="text"
-                    placeholder="Enter your email or phone"
+                    type="email"
+                    placeholder="Enter your email address"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     className="mobile-input pl-12"
@@ -109,22 +109,17 @@ const Auth = () => {
               </Button>
             </form>
             
-            <div className="mt-6 p-4 bg-muted/30 rounded-xl space-y-3">
-              <p className="text-xs text-muted-foreground text-center">
-                Demo: admin@scooter.com (123456) | admin@talentica.com (talentica@2025)
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{' '}
+                <Button
+                  variant="link"
+                  className="p-0 h-auto text-primary hover:text-primary-glow"
+                  onClick={() => navigate('/signup')}
+                >
+                  Sign up
+                </Button>
               </p>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">
-                  Don't have an account?{' '}
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto text-primary hover:text-primary-glow"
-                    onClick={() => navigate('/signup')}
-                  >
-                    Sign up
-                  </Button>
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
