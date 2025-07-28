@@ -14,6 +14,93 @@ export type Database = {
   }
   public: {
     Tables: {
+      knowledge_base: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          is_published: boolean | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          is_published?: boolean | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_published?: boolean | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      offers: {
+        Row: {
+          code: string | null
+          created_at: string
+          created_by: string
+          current_uses: number | null
+          description: string
+          discount_amount: number | null
+          discount_percentage: number | null
+          id: string
+          is_active: boolean | null
+          max_uses: number | null
+          title: string
+          updated_at: string
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          created_by: string
+          current_uses?: number | null
+          description: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          title: string
+          updated_at?: string
+          valid_from?: string
+          valid_until: string
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          created_by?: string
+          current_uses?: number | null
+          description?: string
+          discount_amount?: number | null
+          discount_percentage?: number | null
+          id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
+          title?: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

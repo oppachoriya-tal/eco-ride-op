@@ -11,6 +11,9 @@ import { useUserProfile } from '@/components/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Ticket, BarChart3, Settings, Search, Filter, Plus, Calendar, Activity, TrendingUp, MessageSquare, UserPlus, Shield, AlertTriangle, Mail, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SupportTicketManager } from '@/components/SupportTicketManager';
+import { OffersManager } from '@/components/OffersManager';
+import { KnowledgeBaseManager } from '@/components/KnowledgeBaseManager';
 
 interface SupportTicket {
   id: string;
@@ -480,15 +483,85 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="tickets" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="offers">Offers</TabsTrigger>
+            <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Recent Activity</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {tickets.slice(0, 5).map((ticket) => (
+                      <div key={ticket.id} className="flex items-center gap-3 text-sm">
+                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex-1">
+                          <span className="font-medium">{ticket.customer?.full_name}</span>
+                          <span className="text-muted-foreground"> created ticket: </span>
+                          <span className="truncate">{ticket.title}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(ticket.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    ))}
+                    {tickets.length === 0 && (
+                      <p className="text-sm text-muted-foreground">No recent activity</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quick Actions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button className="w-full justify-start" variant="outline">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create New Ticket
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add New User
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <BarChart3 className="h-4 w-4 mr-2" />
+                      Generate Report
+                    </Button>
+                    <Button className="w-full justify-start" variant="outline">
+                      <Settings className="h-4 w-4 mr-2" />
+                      System Settings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
           <TabsContent value="tickets" className="space-y-4">
+            <SupportTicketManager />
+          </TabsContent>
+
+          <TabsContent value="offers" className="space-y-4">
+            <OffersManager />
+          </TabsContent>
+
+          <TabsContent value="knowledge" className="space-y-4">
+            <KnowledgeBaseManager />
+          </TabsContent>
+
+          <TabsContent value="tickets-old" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Support Tickets</CardTitle>
