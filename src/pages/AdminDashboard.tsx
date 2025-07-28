@@ -6,9 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useUserProfile } from '@/components/useUserProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, Ticket, BarChart3, Settings, Search, Filter, Plus, Calendar, Activity, TrendingUp, MessageSquare, UserPlus, Shield, AlertTriangle } from 'lucide-react';
+import { Users, Ticket, BarChart3, Settings, Search, Filter, Plus, Calendar, Activity, TrendingUp, MessageSquare, UserPlus, Shield, AlertTriangle, Mail, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface SupportTicket {
@@ -39,6 +40,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showCreateUser, setShowCreateUser] = useState(false);
+  const [newUser, setNewUser] = useState({ fullName: '', email: '', role: 'customer' });
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -141,6 +145,164 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error:', error);
+    }
+  };
+
+  const createUser = async () => {
+    if (!newUser.fullName || !newUser.email) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingUser(true);
+    try {
+      // Create auth user
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: 'tempPassword123!',
+        email_confirm: true,
+        user_metadata: {
+          full_name: newUser.fullName,
+        }
+      });
+
+      if (authError) {
+        console.error('Error creating auth user:', authError);
+        toast({
+          title: "Error",
+          description: "Failed to create user account",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: authData.user.id,
+          full_name: newUser.fullName,
+          role: newUser.role as any
+        });
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        toast({
+          title: "Error", 
+          description: "Failed to create user profile",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Success",
+        description: `User ${newUser.fullName} created successfully`,
+      });
+      
+      setNewUser({ fullName: '', email: '', role: 'customer' });
+      setShowCreateUser(false);
+      fetchUsers();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const createSampleData = async () => {
+    try {
+      // Sample users data
+      const sampleUsers = [
+        { fullName: 'Alice Johnson', email: 'alice.johnson@example.com', role: 'customer' },
+        { fullName: 'Bob Smith', email: 'bob.smith@example.com', role: 'customer' },
+        { fullName: 'Carol Davis', email: 'carol.davis@example.com', role: 'customer' },
+        { fullName: 'David Wilson', email: 'david.wilson@example.com', role: 'customer' },
+        { fullName: 'Emma Brown', email: 'emma.brown@example.com', role: 'support' }
+      ];
+
+      // Create users
+      for (const user of sampleUsers) {
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email: user.email,
+          password: 'tempPassword123!',
+          email_confirm: true,
+          user_metadata: {
+            full_name: user.fullName,
+          }
+        });
+
+        if (!authError && authData.user) {
+          await supabase
+            .from('profiles')
+            .insert({
+              user_id: authData.user.id,
+              full_name: user.fullName,
+              role: user.role as any
+            });
+        }
+      }
+
+      // Fetch updated users to get profile IDs
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['customer']);
+
+      if (profiles && profiles.length > 0) {
+        // Sample tickets for each customer
+        const sampleTickets = [
+          { title: 'Battery not charging properly', description: 'My scooter battery takes very long to charge and doesn\'t hold charge for long.', category: 'technical', priority: 'high' },
+          { title: 'GPS not working', description: 'The GPS in the app shows wrong location and navigation is not accurate.', category: 'technical', priority: 'medium' },
+          { title: 'Payment failed', description: 'Unable to complete payment, getting error message during checkout.', category: 'billing', priority: 'high' },
+          { title: 'Account access issue', description: 'Cannot log into my account, password reset not working.', category: 'account', priority: 'urgent' },
+          { title: 'Scooter unlock problem', description: 'QR code scan is not working to unlock the scooter.', category: 'technical', priority: 'medium' }
+        ];
+
+        // Create 2-3 tickets for each customer
+        for (let i = 0; i < profiles.length && i < 5; i++) {
+          const customer = profiles[i];
+          const numTickets = Math.floor(Math.random() * 2) + 2; // 2-3 tickets per customer
+          
+          for (let j = 0; j < numTickets; j++) {
+            const ticket = sampleTickets[Math.floor(Math.random() * sampleTickets.length)];
+            await supabase
+              .from('support_tickets')
+              .insert({
+                customer_id: customer.id,
+                title: ticket.title,
+                description: ticket.description,
+                category: ticket.category,
+                priority: ticket.priority,
+                status: Math.random() > 0.7 ? 'resolved' : Math.random() > 0.5 ? 'in_progress' : 'open'
+              });
+          }
+        }
+      }
+
+      toast({
+        title: "Success",
+        description: "Sample data created successfully",
+      });
+      
+      fetchUsers();
+      fetchTickets();
+    } catch (error) {
+      console.error('Error creating sample data:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create sample data",
+        variant: "destructive",
+      });
     }
   };
 
@@ -407,8 +569,84 @@ const AdminDashboard = () => {
           <TabsContent value="users" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user roles and permissions</CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>User Management</CardTitle>
+                    <CardDescription>Manage user roles and permissions</CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={createSampleData} variant="outline" size="sm">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Sample Data
+                    </Button>
+                    <Dialog open={showCreateUser} onOpenChange={setShowCreateUser}>
+                      <DialogTrigger asChild>
+                        <Button size="sm">
+                          <UserPlus className="h-4 w-4 mr-2" />
+                          Create User
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Create New User</DialogTitle>
+                          <DialogDescription>
+                            Add a new user to the system. They will receive login credentials via email.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="fullName">Full Name</Label>
+                            <div className="relative">
+                              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="fullName"
+                                placeholder="Enter full name"
+                                value={newUser.fullName}
+                                onChange={(e) => setNewUser({ ...newUser, fullName: e.target.value })}
+                                className="pl-10"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <div className="relative">
+                              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                id="email"
+                                type="email"
+                                placeholder="Enter email address"
+                                value={newUser.email}
+                                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                                className="pl-10"
+                              />
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="customer">Customer</SelectItem>
+                                <SelectItem value="support">Support Agent</SelectItem>
+                                <SelectItem value="admin">Administrator</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setShowCreateUser(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={createUser} disabled={isCreatingUser}>
+                            {isCreatingUser ? 'Creating...' : 'Create User'}
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
