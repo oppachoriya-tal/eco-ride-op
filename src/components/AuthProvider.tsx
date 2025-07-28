@@ -7,7 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (phone: string, password?: string) => Promise<{ error: any }>;
-  signUp: (phone: string, password: string, fullName?: string, role?: string) => Promise<{ error: any }>;
+  signUp: (phone: string, password: string, fullName?: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (phone: string, password: string, fullName?: string, role?: string) => {
+  const signUp = async (phone: string, password: string, fullName?: string) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
@@ -62,15 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           data: {
             phone: phone,
             full_name: fullName || '',
-            role: role || 'customer',
           }
         }
       });
-      
       return { error };
-    } catch (err) {
-      console.error('SignUp error:', err);
-      return { error: { message: 'An unexpected error occurred during signup' } };
+    } catch (error) {
+      return { error };
     }
   };
 
