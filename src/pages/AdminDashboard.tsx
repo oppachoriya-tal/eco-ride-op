@@ -44,7 +44,7 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUser, setNewUser] = useState({ fullName: '', email: '', role: 'customer' });
+  const [newUser, setNewUser] = useState({ fullName: '', email: '', role: 'customer', password: 'tempPassword123!' });
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const { toast } = useToast();
 
@@ -61,7 +61,8 @@ const AdminDashboard = () => {
         .from('support_tickets')
         .select(`
           *,
-          customer:profiles(full_name, user_id)
+          customer:profiles!support_tickets_customer_id_fkey(full_name, user_id),
+          assigned:profiles!support_tickets_assigned_to_fkey(full_name, user_id)
         `)
         .order('created_at', { ascending: false });
 
@@ -166,7 +167,7 @@ const AdminDashboard = () => {
       // Create auth user
       const { data: authData, error: authError } = await supabase.auth.admin.createUser({
         email: newUser.email,
-        password: 'tempPassword123!',
+        password: newUser.password,
         email_confirm: true,
         user_metadata: {
           full_name: newUser.fullName,
@@ -207,7 +208,7 @@ const AdminDashboard = () => {
         description: `User ${newUser.fullName} created successfully`,
       });
       
-      setNewUser({ fullName: '', email: '', role: 'customer' });
+      setNewUser({ fullName: '', email: '', role: 'customer', password: 'tempPassword123!' });
       setShowCreateUser(false);
       fetchUsers();
     } catch (error) {
@@ -233,27 +234,46 @@ const AdminDashboard = () => {
         { fullName: 'Emma Brown', email: 'emma.brown@example.com', role: 'support' }
       ];
 
-      // Create users
-      for (const user of sampleUsers) {
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: user.email,
-          password: 'tempPassword123!',
-          email_confirm: true,
-          user_metadata: {
-            full_name: user.fullName,
-          }
-        });
+        // Create sample users by inserting directly into profiles (auth users will be created via trigger)
+        const usersToCreate = sampleUsers.map(user => ({
+          user_id: crypto.randomUUID(),
+          full_name: user.fullName,
+          role: user.role as any
+        }));
 
-        if (!authError && authData.user) {
-          await supabase
-            .from('profiles')
-            .insert({
-              user_id: authData.user.id,
-              full_name: user.fullName,
-              role: user.role as any
-            });
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .insert(usersToCreate);
+
+        if (profilesError) {
+          console.error('Error creating sample users:', profilesError);
+          // Try alternative approach: create through normal signup flow
+          for (const user of sampleUsers) {
+            try {
+              const { data: authData } = await supabase.auth.signUp({
+                email: user.email,
+                password: 'tempPassword123!',
+                options: {
+                  data: {
+                    full_name: user.fullName,
+                  }
+                }
+              });
+              
+              if (authData.user) {
+                await supabase
+                  .from('profiles')
+                  .upsert({
+                    user_id: authData.user.id,
+                    full_name: user.fullName,
+                    role: user.role as any
+                  });
+              }
+            } catch (userError) {
+              console.log(`Skipping user ${user.email}, may already exist`);
+            }
+          }
         }
-      }
 
       // Fetch updated users to get profile IDs
       const { data: profiles } = await supabase
@@ -527,17 +547,17 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button className="w-full justify-start" variant="outline" onClick={() => setShowCreateUser(true)}>
                       <Plus className="h-4 w-4 mr-2" />
                       Create New Ticket
                     </Button>
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button className="w-full justify-start" variant="outline" onClick={() => setShowCreateUser(true)}>
                       <UserPlus className="h-4 w-4 mr-2" />
                       Add New User
                     </Button>
-                    <Button className="w-full justify-start" variant="outline">
+                    <Button className="w-full justify-start" variant="outline" onClick={createSampleData}>
                       <BarChart3 className="h-4 w-4 mr-2" />
-                      Generate Report
+                      Add Sample Data
                     </Button>
                     <Button className="w-full justify-start" variant="outline">
                       <Settings className="h-4 w-4 mr-2" />
@@ -693,6 +713,16 @@ const AdminDashboard = () => {
                                 className="pl-10"
                               />
                             </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="password">Default Password</Label>
+                            <Input
+                              id="password"
+                              type="password"
+                              placeholder="Set default password"
+                              value={newUser.password}
+                              onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="role">Role</Label>
