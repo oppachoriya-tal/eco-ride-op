@@ -47,21 +47,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signUp = async (phone: string, password: string, fullName?: string, role?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email: phone,
-      password: password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          phone: phone,
-          full_name: fullName,
-          role: role || 'customer',
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.signUp({
+        email: phone,
+        password: password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            phone: phone,
+            full_name: fullName || '',
+            role: role || 'customer',
+          }
         }
-      }
-    });
-    return { error };
+      });
+      
+      return { error };
+    } catch (err) {
+      console.error('SignUp error:', err);
+      return { error: { message: 'An unexpected error occurred during signup' } };
+    }
   };
 
   const signOut = async () => {
