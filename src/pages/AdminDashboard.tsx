@@ -38,7 +38,7 @@ interface UserProfile {
 }
 
 const AdminDashboard = () => {
-  const { profile, isAdmin } = useUserProfile();
+  const { profile, isAdmin, loading: profileLoading } = useUserProfile();
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -363,6 +363,14 @@ const AdminDashboard = () => {
     return <Badge variant={variants[priority as keyof typeof variants] || 'default'}>{priority}</Badge>;
   };
 
+  if (profileLoading || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">Loading admin dashboard...</div>
+      </div>
+    );
+  }
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -374,14 +382,6 @@ const AdminDashboard = () => {
             </CardDescription>
           </CardHeader>
         </Card>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">Loading admin dashboard...</div>
       </div>
     );
   }

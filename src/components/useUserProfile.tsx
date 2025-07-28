@@ -29,15 +29,36 @@ export const useUserProfile = () => {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching profile:', error);
-        } else {
+          setProfile(null);
+        } else if (data) {
           setProfile(data);
+        } else {
+          // No profile found, create one with customer role
+          console.log('No profile found, creating default profile');
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              user_id: user.id,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+              role: user.email === 'admin@talentica.com' ? 'admin' : 'customer'
+            })
+            .select()
+            .single();
+          
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            setProfile(null);
+          } else {
+            setProfile(newProfile);
+          }
         }
       } catch (error) {
         console.error('Error:', error);
+        setProfile(null);
       } finally {
         setLoading(false);
       }
