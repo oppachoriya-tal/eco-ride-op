@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SupportTicketManager } from '@/components/SupportTicketManager';
 import { OffersManager } from '@/components/OffersManager';
 import { KnowledgeBaseManager } from '@/components/KnowledgeBaseManager';
+import { ChatAnalytics } from '@/components/ChatAnalytics';
 
 interface SupportTicket {
   id: string;
@@ -504,10 +505,11 @@ const AdminDashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="tickets">Support Tickets</TabsTrigger>
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="chat">Chat Analytics</TabsTrigger>
             <TabsTrigger value="offers">Offers</TabsTrigger>
             <TabsTrigger value="knowledge">Knowledge Base</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -571,6 +573,10 @@ const AdminDashboard = () => {
 
           <TabsContent value="tickets" className="space-y-4">
             <SupportTicketManager />
+          </TabsContent>
+
+          <TabsContent value="chat" className="space-y-4">
+            <ChatAnalytics />
           </TabsContent>
 
           <TabsContent value="offers" className="space-y-4">

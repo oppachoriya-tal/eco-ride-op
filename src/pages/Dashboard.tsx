@@ -32,6 +32,7 @@ import BookingModal from '@/components/BookingModal';
 import ModelComparison from '@/components/ModelComparison';
 import ServiceTracker from '@/components/ServiceTracker';
 import BatteryService from '@/components/BatteryService';
+import { ChatSupport } from '@/components/ChatSupport';
 
 interface Message {
   id: number;
@@ -204,8 +205,12 @@ const Dashboard = () => {
       </header>
 
       <div className="mobile-container py-6">
-        <Tabs defaultValue="support" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 rounded-xl">
+        <Tabs defaultValue="chat" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 rounded-xl">
+            <TabsTrigger value="chat" className="rounded-lg">
+              <MessageCircle className="h-4 w-4 mr-1" />
+              <span className="hidden sm:inline">AI Chat</span>
+            </TabsTrigger>
             <TabsTrigger value="support" className="rounded-lg">
               <MessageCircle className="h-4 w-4 mr-1" />
               <span className="hidden sm:inline">Support</span>
@@ -227,6 +232,10 @@ const Dashboard = () => {
               <span className="hidden sm:inline">Models</span>
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="chat" className="space-y-6">
+            <ChatSupport />
+          </TabsContent>
 
           <TabsContent value="support" className="space-y-6">
             {/* Quick Questions - Mobile First */}
