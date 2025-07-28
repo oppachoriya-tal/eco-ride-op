@@ -165,18 +165,28 @@ const AdminDashboard = () => {
 
     setIsCreatingUser(true);
     try {
-      // Create auth user
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Use regular signup to create user (this works with anon key)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newUser.email,
         password: newUser.password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: newUser.fullName,
+        options: {
+          data: {
+            full_name: newUser.fullName,
+          }
         }
       });
 
       if (authError) {
         console.error('Error creating auth user:', authError);
+        toast({
+          title: "Error",
+          description: "Failed to create user account. Email may already be registered.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!authData.user) {
         toast({
           title: "Error",
           description: "Failed to create user account",
@@ -185,23 +195,19 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Create profile
+      // Update the profile role (the profile is created by trigger but with default customer role)
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
-          user_id: authData.user.id,
-          full_name: newUser.fullName,
-          role: newUser.role as any
-        });
+        .update({ role: newUser.role as any })
+        .eq('user_id', authData.user.id);
 
       if (profileError) {
-        console.error('Error creating profile:', profileError);
+        console.error('Error updating profile role:', profileError);
         toast({
-          title: "Error", 
-          description: "Failed to create user profile",
+          title: "Warning", 
+          description: "User created but failed to set role. Please update manually.",
           variant: "destructive",
         });
-        return;
       }
 
       toast({
@@ -516,59 +522,31 @@ const AdminDashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {tickets.slice(0, 5).map((ticket) => (
-                      <div key={ticket.id} className="flex items-center gap-3 text-sm">
-                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                        <div className="flex-1">
-                          <span className="font-medium">{ticket.customer?.full_name}</span>
-                          <span className="text-muted-foreground"> created ticket: </span>
-                          <span className="truncate">{ticket.title}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(ticket.created_at).toLocaleDateString()}
-                        </span>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {tickets.slice(0, 5).map((ticket) => (
+                    <div key={ticket.id} className="flex items-center gap-3 text-sm">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <div className="flex-1">
+                        <span className="font-medium">{ticket.customer?.full_name}</span>
+                        <span className="text-muted-foreground"> created ticket: </span>
+                        <span className="truncate">{ticket.title}</span>
                       </div>
-                    ))}
-                    {tickets.length === 0 && (
-                      <p className="text-sm text-muted-foreground">No recent activity</p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <Button className="w-full justify-start" variant="outline" onClick={() => setShowCreateUser(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create New Ticket
-                    </Button>
-                    <Button className="w-full justify-start" variant="outline" onClick={() => setShowCreateUser(true)}>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Add New User
-                    </Button>
-                    <Button className="w-full justify-start" variant="outline" onClick={createSampleData}>
-                      <BarChart3 className="h-4 w-4 mr-2" />
-                      Add Sample Data
-                    </Button>
-                    <Button className="w-full justify-start" variant="outline">
-                      <Settings className="h-4 w-4 mr-2" />
-                      System Settings
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(ticket.created_at).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))}
+                  {tickets.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No recent activity</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="tickets" className="space-y-4">
