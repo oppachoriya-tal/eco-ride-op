@@ -89,6 +89,7 @@ const SignUp = () => {
                   />
                 </div>
               </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-sm font-medium">Email</Label>
                 <div className="relative">
@@ -104,22 +105,7 @@ const SignUp = () => {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="role" className="text-sm font-medium">Account Type</Label>
-                <div className="relative">
-                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                  <Select value={role} onValueChange={setRole}>
-                    <SelectTrigger className="mobile-input pl-12">
-                      <SelectValue placeholder="Select account type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="customer">Customer</SelectItem>
-                      <SelectItem value="support">Support Agent</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium">Password</Label>
                 <div className="relative">
@@ -136,6 +122,24 @@ const SignUp = () => {
                   />
                 </div>
               </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role" className="text-sm font-medium">Account Type</Label>
+                <div className="relative">
+                  <Shield className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                  <Select value={role} onValueChange={setRole}>
+                    <SelectTrigger className="mobile-input pl-12">
+                      <SelectValue placeholder="Select account type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="support">Support Agent</SelectItem>
+                      <SelectItem value="admin">Administrator</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
               <Button 
                 type="submit" 
                 className="mobile-button w-full gradient-primary border-0 shadow-[var(--shadow-mobile)]" 
